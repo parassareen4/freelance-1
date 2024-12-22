@@ -1,130 +1,130 @@
 "use client";
+import React, { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
+import Flip from "gsap/Flip";
 
-import React, { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { Flip, ScrollTrigger } from "gsap/all";
-import Image from "next/image";
+// Move GSAP registration into a client-side check
 
-interface ContentProps {
-	projectTitle: string;
-	mainText: string;
-	emphasizedText: string;
-	imageUrl: string;
-	paragraph: string;
+interface ExpandImageEffectProps {
+    imageUrl: string;
+    projectNumber: string;
+    text: string;
+    expandText: string;
 }
 
-const Content: React.FC<ContentProps> = ({ projectTitle, mainText, emphasizedText, imageUrl, paragraph }) => {
-	const contentRef = useRef<HTMLDivElement | null>(null);
-	const textBlock = useRef<HTMLElement | null>(null); // Ref for emphasizedText span
-	const imageRef = useRef<HTMLImageElement | null>(null); // Ref for image element
+export const ExpandImageEffect: React.FC<ExpandImageEffectProps> = ({ 
+    imageUrl, 
+    projectNumber, 
+    text, 
+    expandText 
+}) => {
+    const [isMounted, setIsMounted] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const imageRef = useRef<HTMLDivElement>(null);
+    const expandTextRef = useRef<HTMLSpanElement>(null);
+    const textBlockRef = useRef<HTMLParagraphElement>(null);
 
 	useEffect(() => {
-		gsap.registerPlugin(Flip, ScrollTrigger);
+		if (typeof window !== "undefined") {
+			gsap.registerPlugin(ScrollTrigger, Flip);
+		}
 
-		const scrollEffect = () => {
-			const wrapElement = contentRef.current;
-			const image = imageRef.current;
+        setIsMounted(true);
+    }, []);
 
-			if (!wrapElement || !image || !textBlock.current) {
-				console.error("Missing required elements for animation.");
-				return;
-			}
+    useEffect(() => {
+        if (!isMounted) return;
 
-			const expandTexts = wrapElement.querySelectorAll<HTMLSpanElement>(".anim");
+        const setupAnimations = async () => {
+            if (!wrapperRef.current || !imageRef.current || 
+                !expandTextRef.current || !textBlockRef.current) {
+                return;
+            }
 
-			wrapElement.classList.add("type--open");
-			const flipState = Flip.getState([image, ...expandTexts], {
-				props: "transform",
-			});
+            const wrapper = wrapperRef.current;
+            const image = imageRef.current;
+            const expandText = expandTextRef.current;
 
-			wrapElement.classList.remove("type--open");
+            wrapper.classList.add("type--open");
+            const flipstate = Flip.getState([image, expandText], {
+                props: "transform",
+            });
+            wrapper.classList.remove("type--open");
 
-			Flip.to(flipState, {
-				ease: "power1.inOut",
-				scrollTrigger: {
-					trigger: wrapElement,
-					start: "top bottom",
-					end: "+=150%",
-					scrub: true,
-				},
-			})
-				.to(
-					textBlock.current,
-					{
-						ease: "sine.inOut",
-						yPercent: -50,
-						opacity: 0.5,
-						skewX: -8,
-						scrollTrigger: {
-							trigger: textBlock.current,
-							start: "top bottom",
-							end: "bottom top",
-							scrub: true,
-						},
-					},
-					0,
-				)
-				.to(image, {
-					scale: 1.5, // Grow image on scroll
-					scrollTrigger: {
-						trigger: wrapElement,
-						start: "top bottom",
-						end: "200% top",
-						scrub: true,
-					},
-				});
-		};
+            Flip.to(flipstate, {
+                ease: "power1.inOut",
+                scrollTrigger: {
+                    trigger: wrapper,
+                    start: "clamp(top bottom)",
+                    end: "+=135%",
+                    scrub: true,
+                },
+            });
 
-		scrollEffect();
-		return () => {
-			// Clean up animations on component unmount
-			ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-		};
-	}, []);
+            gsap.to(textBlockRef.current, {
+                ease: "sine.inOut",
+                yPercent: -150,
+                opacity: 0.2,
+                skewX: -8,
+                scrollTrigger: {
+                    trigger: textBlockRef.current,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: true,
+                },
+            });
+        };
 
+        setupAnimations();
 
+        return () => {
+            if (typeof window !== 'undefined') {
+                ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+            }
+        };
+    }, [isMounted]);
 
-	
-	return (
-		<div
-			ref={contentRef}
-			className="content content--left"
-		>
-			{/* Project Title */}
-			<h3 className="meta">{projectTitle}</h3>
-
-			{/* Main Text with Expand Effect */}
-			<h2 className="type">
-				{mainText.split("\n").map((line, index) => (
-					<React.Fragment key={index}>
-						{line}
-						<br />
-					</React.Fragment>
-				))}
-				<span className="type__expand type__expand--inline type__expand--reveal">
-					<span className="type__expand-img">
-						{/* Image is displayed */}
-						<Image
-							src={imageUrl}
-							alt="Expanding"
-							className="object-cover transform-gpu type__expand-img-inner"
-							layout="fill"
-							ref={imageRef}
-						/>
-					</span>
-					<span
-						className="anim skewed"
-						ref={textBlock}
-					>
-						{emphasizedText}
-					</span>
-				</span>
-			</h2>
-
-			{/* Paragraph Block */}
-			<p className="block">{paragraph}</p>
-		</div>
-	);
+    // Rest of the component remains the same
+    return (
+        <div className="content content--left">
+            <h3 className="meta">Project {projectNumber}</h3>
+            <h2
+                className="type"
+                ref={wrapperRef}
+                data-expand-1
+            >
+                {text.split("<br />").map((line, index) => (
+                    <React.Fragment key={index}>
+                        {line}
+                        <br />
+                    </React.Fragment>
+                ))}
+                <span className="type__expand type__expand--inline type__expand--reveal">
+                    <span
+                        className="type__expand-img"
+                        ref={imageRef}
+                    >
+                        <span
+                            className="type__expand-img-inner"
+                            style={{ backgroundImage: `url(${imageUrl})` }}
+                        />
+                    </span>
+                    <span
+                        className="anim skewed"
+                        ref={expandTextRef}
+                    >
+                        {expandText}
+                    </span>
+                </span>
+            </h2>
+            <p
+                className="block"
+                ref={textBlockRef}
+            >
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, dolor! Rerum, maiores voluptates. Nisi, labore impedit optio similique culpa, suscipit repellat magnam quia, nesciunt
+                veniam debitis. Quae assumenda eveniet minima magni ipsa velit quas?
+            </p>
+        </div>
+    );
 };
-
-export default Content;

@@ -1,12 +1,40 @@
-import ScrollExpand from "@/components/Expanding1";
-import { FC, ReactNode } from "react";
-interface pageProps {
-  children :ReactNode
+"use client";
+import React from "react";
+import { ExpandImageEffect } from "@/components/Expanding1";
+import { ExpandImageEffectCenter } from "@/components/Expanding-2";
+import { ExpandImageEffectRight } from "@/components/Expanding-3";
 
-}
+const App: React.FC = () => {
+	return (
+		<div className="w-full min-h-[600vh] flex items-center flex-col pt-24">
+			<ExpandImageEffect
+				imageUrl="/yippe.gif"
+				projectNumber="1"
+				text="Gratitude is my new response to"
+				expandText="judgement."
+			/>
 
-const page: FC<pageProps> = () => {
-	return <div className="w-full min-h-[200vh]  flex items-center"><ScrollExpand  projectTitle="hello world ?" emphasizedText="I am new here:)" imageUrl="/yippe.gif" mainText="the thing about main text  is that it ends one day " paragraph="some text is necessary i guess "/>  </div>;
+			<ExpandImageEffectCenter
+				imageUrl="/yippe.gif"
+				projectNumber="2"
+				beforeText="Life's a wild journey;"
+				centerLeftText="detours"
+				centerRightText="and dance"
+				afterText="under the stars."
+				description="In this dance, even the stars, those ancient sentinels of the night sky, are not stationary but in perpetual motion"
+			/>
+
+			<ExpandImageEffectRight
+				imageUrl="/yippe.gif"
+				projectNumber="3"
+				line1="Let the miles unfurl"
+				line2="like stories each"
+				line3="one a breath in the"
+				line4="saga of the soul."
+				description="As we delve deeper into the mysteries of the cosmos, we encounter the profound realization that the universe itself breathes in a rhythm of creation and dissolution, a cosmic dance that mirrors the cycles of life and death on our own planet. Stars are born from the dust, shining fiercely against the dark, only to eventually fade or explode in a dazzling finale, their remnants seeding future stars, planets, and perhaps, life itself. This celestial cycle reflects the very essence of the Dao, emphasizing the interconnectedness of all things, the perpetual motion and transformation that is the hallmark of existence."
+			/>
+		</div>
+	);
 };
 
-export default page;
+export default App;
